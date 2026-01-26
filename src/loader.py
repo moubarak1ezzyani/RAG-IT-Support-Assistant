@@ -27,10 +27,11 @@ try:
     # --- INSPECT
     print("--- 1st Chunk ---")
     print(chunks[0].page_content)
-
+    print(f"metadata : {chunks[0].metadata}")
+    
     print("--- 2nd Chunk ---")
     print(chunks[1].page_content)
-
+    print(f"metadata : {chunks[0].metadata}")
 except FileNotFoundError:
     print(f"I couldn't find {pdf_path}")
 
