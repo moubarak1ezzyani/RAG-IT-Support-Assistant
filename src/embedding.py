@@ -1,8 +1,16 @@
 # embedding file
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from ingestion import ingest_document
 
+embeddings=HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
+chunks=ingest_document()
+chunk_text=[doc.page_content for doc in chunks]
 
+vectors=embeddings.embed_documents(chunk_text)     # embed_query() | documents
+chunk_text[:3]
 
+print(f"Number of chunks vectorized {len(vectors)}")
+print(f"dim of 1st chunk {len(vectors[0])}")
 #--------------------------------------
 # # Model loader (BGE-M3)
 # import os
