@@ -4,10 +4,9 @@ import os
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from ingestion import ingest_document
 
-hf_key=os.getenv("hf_token_embedding")
-embeddings=HuggingFaceEmbeddings(
-    api_key=hf_key,
-    model_name="BAAI/bge-m3")
+
+embeddings=HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
+
 chunks=ingest_document()
 chunk_text=[doc.page_content for doc in chunks]
 
