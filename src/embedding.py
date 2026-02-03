@@ -1,19 +1,48 @@
 # embedding file
-from dotenv import load_dotenv
-import os
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
-from ingestion import ingest_document
+# from dotenv import load_dotenv
+# import os
+# from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+# # from ingestion import ingest_document
+# from huggingface_hub import InferenceClient
 
 embeddings=HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
 chunks=ingest_document()
 chunk_text=[doc.page_content for doc in chunks]
 
-vectors=embeddings.embed_documents(chunk_text)     # embed_query() | documents
-chunk_text[:3]
+# --- implement Hugg Face
 
-print(f"Number of chunks vectorized {len(vectors)}")
-print(f"dim of 1st chunk {len(vectors[0])}")
+# client = InferenceClient(
+#     provider="hf-inference",
+#     api_key=os.environ["hf_token_embedding"],
+# )
+
+# result = client.sentence_similarity(
+#     {
+#     "source_sentence": "That is a happy person",
+#     "sentences": [
+#         "That is a happy dog",
+#         "That is a very happy person",
+#         "Today is a sunny day"
+#     ]
+# },
+#     model="BAAI/bge-m3",
+# )
 #--------------------------------------
+# def embedding_data_file():
+#     hf_key=os.getenv("hf_token_embedding")
+#     embeddings=HuggingFaceEmbeddings(
+#         api_key=hf_key,
+#         model_name="BAAI/bge-m3")
+#     chunks=ingest_document()
+#     chunk_text=[doc.page_content for doc in chunks]
+
+#     vectors=embeddings.embed_documents(chunk_text)     # embed_query() | documents
+#     chunk_text[:3]
+
+#     print(f"Number of chunks vectorized {len(vectors)}")
+#     print(f"dim of 1st chunk {len(vectors[0])}")
+#     return vectors
+
 # # Model loader (BGE-M3)
 # import os
 # from huggingface_hub import InferenceClient
