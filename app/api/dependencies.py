@@ -1,0 +1,1 @@
+# Vérification token JWT, accès DB
