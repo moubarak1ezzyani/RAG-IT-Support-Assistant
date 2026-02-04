@@ -1,0 +1,1 @@
+# Modèles Pydantic (validation des données)

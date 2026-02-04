@@ -1,4 +1,5 @@
-# embedding file
+# Configuration du modèle HuggingFace
+#_____________________________________
 # from dotenv import load_dotenv
 # import os
 # from langchain_huggingface.embeddings import HuggingFaceEmbeddings
