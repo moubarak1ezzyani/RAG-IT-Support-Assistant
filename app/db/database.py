@@ -9,7 +9,7 @@ load_dotenv()
 db_user=os.getenv("db_user_env")
 db_password=os.getenv("db_password_env")
 db_host=os.getenv("db_host_env")
-db_port=os.getenv("db_port_env")
+db_port=os.getenv("db_port_env","5432")
 db_name=os.getenv("db_name_env")
 
 # link db : protocol://username:password@host:port/database_name
