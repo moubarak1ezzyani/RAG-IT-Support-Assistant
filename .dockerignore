@@ -1,0 +1,23 @@
+# .dockerignore
+
+# Ignorer l'environnement virtuel local (le plus important !)
+venv/
+env/
+.venv/
+
+# Ignorer Git
+.git/
+.gitignore
+
+# Ignorer les données de la BDD locale (si le dossier existe)
+postgres_data/
+
+# Ignorer les fichiers Python compilés et cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorer les variables d'environnement locales (sécurité)
+.env
+.env.local
