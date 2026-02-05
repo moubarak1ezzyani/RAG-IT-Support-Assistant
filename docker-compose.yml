@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db_postgres:
+    image: postgres:15
+    container_name: rag_assistant
+    restart: always
+    environment:
+      POSTGRES_USER: ${db_user_env}   
+      POSTGRES_PASSWORD: ${db_password_env} 
+      POSTGRES_DB: ${db_name_env}       
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend_app:
+    build: .
+    container_name: fastapi_app
+    depends_on:
+      - db_postgres
+    environment:
+      - db_user=${db_user_env}
+      - db_password=${db_password_env}
+      - db_host=${db_host_env}  # Nom du service Docker
+      - db_port=5432
+      - db_name=${db_name_env}
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
