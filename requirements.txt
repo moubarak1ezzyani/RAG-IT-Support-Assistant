@@ -1,0 +1,19 @@
+# --- Framework & Serveur ---
+fastapi
+uvicorn
+
+# --- Base de données (ORM & Driver) ---
+sqlalchemy
+psycopg2-binary
+
+# --- Validation de données ---
+pydantic
+pydantic[email]
+
+# --- Gestion de l'environnement ---
+python-dotenv
+
+# --- Sécurité (Hashage & JWT) ---
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
