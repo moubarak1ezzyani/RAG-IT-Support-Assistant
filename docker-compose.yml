@@ -22,7 +22,7 @@ services:
     environment:
       - db_user=${db_user_env}
       - db_password=${db_password_env}
-      - db_host=${db_host_env}  # Nom du service Docker
+      - db_host=db_postgres  # Nom du service Docker
       - db_port=5432
       - db_name=${db_name_env}
     ports:
