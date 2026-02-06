@@ -7,10 +7,10 @@ from typing import Optional, List
 # --- Base (Shared properties)
 class UserBase(BaseModel):
     email: EmailStr
-
-# input : raw password
-class UserCreate(UserBase):
     password: str
+# input : raw password
+# class UserCreate(UserBase):
+    
 
 # response
 class UserResponse(UserBase):
