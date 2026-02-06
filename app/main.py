@@ -1,39 +1,48 @@
 # Point d'entrée de l'application (lancement FastAPI)
-from fastapi import FastAPI, Depends
-from .db.database import engine
+from fastapi import FastAPI, Depends, HTTPException, status
+from app.db.database import engine, Base, SessionLocal, get_db
+from app.db.models import User, Query
+from app.db.schemas import UserBase
+from app.core.security import pwd_context, OAuth2PasswordBearer
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-from .db.database import Base, SessionLocal
-from typing import Annotated
+from datetime import datetime, timedelta, timezone
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from dotenv import load_dotenv
+import os
+from app.core.security import create_access_token
+from app.rag.vector_db import main 
+
 
 app=FastAPI()
 Base.metadata.create_all(bind=engine)
+# routers
+# app.include_router(auth.router)
+# app.include_router(questions.router)
 
-def get_db():
-    db=SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
-db_dependancy=Annotated[Session, Depends(get_db)]
+# --- Sign Up
+@app.post("/register")      # path = "/register"
+def register(user: UserBase, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.username == user.username).first():       # SELECT * FROM users WHERE username = usernameL LIMIT 1;
+        raise HTTPException(status_code=400, detail="Username already registered")  # 400 : Bad Request
+    hashed_pw = pwd_context.hash(user.password)
+    db_user = User(username=user.username, hashed_password=hashed_pw)
+    db.add(db_user) 
+    db.commit()     # <=> INSERT INTO
+    return {"message": "User created"}
 
-# # --- SECURITY ---
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")       # bcrypt : ALGO | deprecier les algo obsolète
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+# --- login
+@app.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == form_data.username).first()
+    if not user or not pwd_context.verify(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect credentials")
 
-# def create_access_token(data: dict):    # dict : infos à mettre dans JWT
-#     to_encode = data.copy()
-#     expire = datetime.now(timezone.utc) + timedelta(minutes=30)     # expiration : temps actuel + duree determinee
-#     to_encode.update({"exp": expire})
-#     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    token = create_access_token(data={"sub": user.username})
+    return {"access_token": token, "token_type": "bearer"}
 
-# async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-#     try:
-#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-#         username: str = payload.get("sub")      # {"sub" : username}
-#         if username is None: raise HTTPException(status_code=401)       # 401 : Unauthorized
-#     except JWTError: raise HTTPException(status_code=401)
-#     user = db.query(User).filter(User.username == username).first()     # q : choix de table | f : condition | f : 1er resultat
-#     if user is None: raise HTTPException(status_code=401)
-#     return user
-    
+@app.post("/similarity")
+def search_similarity():
+    result=main()
