@@ -19,12 +19,24 @@ services:
     container_name: fastapi_app
     depends_on:
       - db_postgres
+    volumes:
+      - .:/app  
     environment:
-      - db_user=${db_user_env}
-      - db_password=${db_password_env}
-      - db_host=db_postgres  # Nom du service Docker
-      - db_port=5432
-      - db_name=${db_name_env}
+      # --- CRITICAL FIX BELOW ---
+      # The LEFT side matches your Python os.getenv("...")
+      # The RIGHT side is the value/variable
+      
+      - db_user_env=${db_user_env}
+      - db_password_env=${db_password_env}
+      - db_host_env=db_postgres      # <--- Python looks for 'db_host_env', not 'DB_HOST'
+      - db_port_env=5432
+      - db_name_env=${db_name_env}
+
+      # These can stay uppercase if your code expects them that way, 
+      # but usually, stick to one style.
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
     ports:
       - "8000:8000"
 
