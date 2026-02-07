@@ -1,17 +1,21 @@
-# --- RAG pipeline
+# --- RAG pipeline dependencies ---
+
 # Document Processing
-langchain
-langchain-community
-langchain-text-splitters
 pypdf
+langchain-text-splitters==1.0.0
 
 # Vector Database & Embeddings
 chromadb
 langchain-chroma
 sentence-transformers
-
-# LLM & Chain Logic
 langchain-huggingface
-langchain-core
+
+# Core LangChain v1.x & Legacy Support
+langchain==1.0.5
+langchain-community==0.4.1
+langchain-classic         # <--- CRITICAL: Required for create_retrieval_chain
 python-dotenv
 huggingface-hub
+
+# Additional Integrations
+langchain-google-vertexai==3.0.3
