@@ -1,42 +1,42 @@
-version: '3.8'
-
 services:
   db_postgres:
     image: postgres:15
-    container_name: rag_assistant
+    container_name: rag_assistant_db
     restart: always
     environment:
-      POSTGRES_USER: ${db_user_env}   
-      POSTGRES_PASSWORD: ${db_password_env} 
-      POSTGRES_DB: ${db_name_env}       
+      POSTGRES_USER: ${db_user_env}
+      POSTGRES_PASSWORD: ${db_password_env}
+      POSTGRES_DB: ${db_name_env}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # 1. ADD THIS HEALTHCHECK
+    # This checks every 5 seconds if the DB is ready.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${db_user_env} -d ${db_name_env}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend_app:
     build: .
     container_name: fastapi_app
+    # 2. UPDATE DEPENDS_ON
+    # This tells the app: "Don't start until the DB signals it is healthy"
     depends_on:
-      - db_postgres
+      db_postgres:
+        condition: service_healthy
     volumes:
-      - .:/app  
+      - .:/app
     environment:
-      # --- CRITICAL FIX BELOW ---
-      # The LEFT side matches your Python os.getenv("...")
-      # The RIGHT side is the value/variable
-      
+      - db_host_env=db_postgres
+      - db_port_env=5432
       - db_user_env=${db_user_env}
       - db_password_env=${db_password_env}
-      - db_host_env=db_postgres      # <--- Python looks for 'db_host_env', not 'DB_HOST'
-      - db_port_env=5432
       - db_name_env=${db_name_env}
-
-      # These can stay uppercase if your code expects them that way, 
-      # but usually, stick to one style.
-      - SECRET_KEY=${SECRET_KEY}
-      - ALGORITHM=${ALGORITHM}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - SECRET_KEY_env=${SECRET_KEY_env}
+      - ALGO_env=${ALGO_env}
     ports:
       - "8000:8000"
 
