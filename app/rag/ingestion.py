@@ -7,7 +7,7 @@ import os
 
 # --- config path
 script_dir = os.path.dirname(os.path.abspath(__file__))
-pdf_path = os.path.join(script_dir, "..", "data", "The-IT-Support-Handbook.pdf")
+pdf_path = os.path.join(script_dir, "..","..", "data", "raw","The-IT-Support-Handbook.pdf")
 
 # --- function
 def ingest_document():
@@ -21,7 +21,8 @@ def ingest_document():
         # --- LOAD
         loader=PyPDFLoader(pdf_path)
         raw_pages=loader.load()
-        print(f"loaded {len(raw_pages)} page(s)")
+        print(f"loaded {len(raw_pages)} page(s)")   # output : 199 pages
+
 
         # --- SPLIT
         splitter=RecursiveCharacterTextSplitter(
@@ -29,7 +30,7 @@ def ingest_document():
             chunk_overlap=50
         )
         chunks=splitter.split_documents(raw_pages)
-        print(f"split document into {len(chunks)} chunks")
+        print(f"split document into {len(chunks)} chunks")  # output : 770 chunks
 
         # # --- INSPECT
         # print("--- 1st Chunk ---")
@@ -47,3 +48,5 @@ def ingest_document():
         print(f"❌ an error occured {e}")
 
     return chunks
+
+ingest_document()
