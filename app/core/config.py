@@ -16,6 +16,6 @@ pdf_path = os.path.join(CURRENT_DIR, "..", "..", "data", "raw","The-IT-Support-H
 model_in_use="BAAI/bge-m3"
 
 # chain
-hf_token = os.getenv("hf_token_embedding")
+hf_token = os.getenv("hf_token_env")
 llm_in_use="Zephyr-7b"
 repo_hugg_id="HuggingFaceH4/zephyr-7b-beta"
