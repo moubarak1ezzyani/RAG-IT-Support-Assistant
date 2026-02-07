@@ -1,19 +1,19 @@
-# --- Framework & Serveur ---
+# --- Framework & Server ---
 fastapi
 uvicorn
+python-multipart
 
-# --- Base de données (ORM & Driver) ---
+# --- Database (ORM & Driver) ---
 sqlalchemy
 psycopg2-binary
 
-# --- Validation de données ---
+# --- Data Validation ---
 pydantic
-pydantic[email]
+email-validator
 
-# --- Gestion de l'environnement ---
+# --- Environment Management ---
 python-dotenv
 
-# --- Sécurité (Hashage & JWT) ---
+# --- Security (Hashing & JWT) ---
 passlib[bcrypt]
 python-jose[cryptography]
-python-multipart
