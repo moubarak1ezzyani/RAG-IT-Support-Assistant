@@ -1,0 +1,17 @@
+# --- RAG pipeline
+# Document Processing
+langchain
+langchain-community
+langchain-text-splitters
+pypdf
+
+# Vector Database & Embeddings
+chromadb
+langchain-chroma
+sentence-transformers
+
+# LLM & Chain Logic
+langchain-huggingface
+langchain-core
+python-dotenv
+huggingface-hub
