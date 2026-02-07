@@ -15,5 +15,6 @@ email-validator
 python-dotenv
 
 # --- Security (Hashing & JWT) ---
+bcrypt==4.0.1a
 passlib[bcrypt]
 python-jose[cryptography]
