@@ -2,15 +2,13 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
+from ..core.config import pdf_path
 
 # pdf_path="../data/The-IT-Support-Handbook.pdf"
 
-# --- config path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-pdf_path = os.path.join(script_dir, "..","..", "data", "raw","The-IT-Support-Handbook.pdf")
 
 # --- function
-def ingest_document():
+def ingest_document(pdf_path):
     # path checking
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"❌ PDF not found at path: {pdf_path}")
@@ -49,4 +47,6 @@ def ingest_document():
 
     return chunks
 
-ingest_document()
+
+if __name__ == "__main__":
+    ingest_document(pdf_path)
