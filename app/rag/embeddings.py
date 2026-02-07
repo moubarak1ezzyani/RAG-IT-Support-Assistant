@@ -1,7 +1,7 @@
 import os
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from ingestion import ingest_document, pdf_path
+from .ingestion import ingest_document, pdf_path
 from app.core.config import model_in_use, STORE_PATH
 
 def get_vector_store():
