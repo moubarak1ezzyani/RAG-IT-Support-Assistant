@@ -1,7 +1,8 @@
-# Point d'entrée de l'application (lancement FastAPI)
 import os
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+from contextlib import asynccontextmanager  # <--- NEW IMPORT
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -13,8 +14,11 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from sqlalchemy.sql import func
 
+# Import your RAG builder
+from .rag.chain import build_rag_chain 
+
 # ==========================================
-# 1. CONFIGURATION (Environment Variables)
+# 1. CONFIGURATION
 # ==========================================
 load_dotenv()
 
@@ -45,22 +49,19 @@ def get_db():
         db.close()
 
 # ==========================================
-# 3. MODELS (SQLAlchemy Tables)
+# 3. MODELS
 # ==========================================
 class User(Base):
     __tablename__ = "users"
-
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
     queries = relationship("Query", back_populates="user")
 
 class Query(Base):
     __tablename__ = "queries"
-
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     question = Column(String, nullable=False)
@@ -68,11 +69,10 @@ class Query(Base):
     cluster_id = Column(Integer, nullable=True)
     latency_ms = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
     user = relationship("User", back_populates="queries")
 
 # ==========================================
-# 4. SCHEMAS (Pydantic Models)
+# 4. SCHEMAS
 # ==========================================
 class Token(BaseModel):
     access_token: str
@@ -88,7 +88,6 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
-
     class Config:
         from_attributes = True
 
@@ -105,7 +104,6 @@ class QueryResponse(QueryBase):
     cluster_id: Optional[int] = None
     latency_ms: Optional[float] = None
     created_at: datetime
-
     class Config:
         from_attributes = True
 
@@ -154,11 +152,37 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 # ==========================================
-# 7. API APPLICATION
+# 7. APP LIFESPAN & INITIALIZATION
 # ==========================================
-app = FastAPI()
 
+# Global variable to store the chain
+rag_pipeline = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- STARTUP LOGIC ---
+    global rag_pipeline
+    print("⏳ Initializing RAG Pipeline...")
+    try:
+        rag_pipeline = build_rag_chain()
+        print("✅ RAG Pipeline successfully loaded.")
+    except Exception as e:
+        print(f"⚠️ Warning: RAG pipeline failed to initialize: {e}")
+    
+    yield  # Application runs here
+    
+    # --- SHUTDOWN LOGIC ---
+    print("🛑 Shutting down application...")
+
+# Initialize FastAPI with the lifespan handler
+app = FastAPI(lifespan=lifespan)
+
+# Create tables if they don't exist
 Base.metadata.create_all(bind=engine)
+
+# ==========================================
+# 8. API ENDPOINTS
+# ==========================================
 
 @app.post("/users/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -175,7 +199,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/login", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # Note: OAuth2PasswordRequestForm expects "username" field, so we map email to it
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -196,55 +219,32 @@ def read_users_me(current_user: User = Depends(get_current_user)):
 
 @app.post("/query/", response_model=QueryResponse)
 def create_query(query: QueryCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    fake_answer = f"Processed: {query.question}"
+    start_time = time.time()
     
+    # --- Use the RAG Pipeline ---
+    if rag_pipeline:
+        try:
+            result = rag_pipeline.invoke({"input": query.question})
+            answer_text = result["answer"]
+        except Exception as e:
+            print(f"RAG Error: {e}")
+            answer_text = "I encountered an error processing your request."
+    else:
+        answer_text = "The AI system is currently offline."
+
+    # --- Save to Database ---
+    end_time = time.time()
+    latency = (end_time - start_time) * 1000
+
     db_query = Query(
         user_id=current_user.id,
         question=query.question,
-        answer=fake_answer,
+        answer=answer_text,
         cluster_id=1,
-        latency_ms=120.5
+        latency_ms=latency
     )
     db.add(db_query)
     db.commit()
     db.refresh(db_query)
-    return db_query
-#-------------------------------------------
-# from fastapi import FastAPI, Depends
-# from .db.database import engine
-# from sqlalchemy.orm import sessionmaker, declarative_base, Session
-# from .db.database import Base, SessionLocal
-# from typing import Annotated
-
-# app=FastAPI()
-# Base.metadata.create_all(bind=engine)
-
-# def get_db():
-#     db=SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
-
-# db_dependancy=Annotated[Session, Depends(get_db)]
-
-# # --- SECURITY ---
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")       # bcrypt : ALGO | deprecier les algo obsolète
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-# def create_access_token(data: dict):    # dict : infos à mettre dans JWT
-#     to_encode = data.copy()
-#     expire = datetime.now(timezone.utc) + timedelta(minutes=30)     # expiration : temps actuel + duree determinee
-#     to_encode.update({"exp": expire})
-#     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-# async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-#     try:
-#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-#         username: str = payload.get("sub")      # {"sub" : username}
-#         if username is None: raise HTTPException(status_code=401)       # 401 : Unauthorized
-#     except JWTError: raise HTTPException(status_code=401)
-#     user = db.query(User).filter(User.username == username).first()     # q : choix de table | f : condition | f : 1er resultat
-#     if user is None: raise HTTPException(status_code=401)
-#     return user
     
+    return db_query
