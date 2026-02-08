@@ -15,7 +15,7 @@ email-validator
 python-dotenv
 
 # --- Security (Hashing & JWT) ---
-bcrypt==4.0.1a
+bcrypt==4.0.1
 passlib[bcrypt]
 python-jose[cryptography]
 # --- RAG pipeline dependencies ---
