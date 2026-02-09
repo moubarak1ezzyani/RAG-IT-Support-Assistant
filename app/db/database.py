@@ -1,19 +1,13 @@
 # Connexion 
-from app.core.config import db_url 
+from app.core.config import SQLALCHEMY_DATABASE_URL 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 from typing import Annotated
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 
-# engine
-engine = create_engine(db_url)
-
-# session
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# base
 Base = declarative_base()
-
 
 def get_db():
     db=SessionLocal()
@@ -23,3 +17,7 @@ def get_db():
         db.close()
 
 db_dependancy=Annotated[Session, Depends(get_db)]
+
+
+
+
