@@ -6,9 +6,8 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db import models, schemas
 from app.core import security
-# from app.core.config import settings
-# from django.conf import settings
 from app.api.dependencies import get_current_user
+from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter()
 
@@ -35,7 +34,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
@@ -48,7 +47,7 @@ def read_users_me(current_user: models.User = Depends(get_current_user)):
 @router.post("/query/", response_model=schemas.QueryResponse)
 def create_query(
     query: schemas.QueryCreate, 
-    request: Request, # <--- NOTE: We need Request to access the app.state
+    request: Request, 
     current_user: models.User = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ):
