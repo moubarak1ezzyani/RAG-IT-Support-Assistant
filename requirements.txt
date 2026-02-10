@@ -18,9 +18,8 @@ python-dotenv
 bcrypt==4.0.1
 passlib[bcrypt]
 python-jose[cryptography]
-# --- RAG pipeline dependencies ---
-
-# Document Processing
+    
+# --- RAG Pipeline Dependencies ---
 pypdf
 langchain-text-splitters==1.0.0
 
@@ -29,13 +28,16 @@ chromadb
 langchain-chroma
 sentence-transformers
 langchain-huggingface
+huggingface-hub
 
-# Core LangChain v1.x & Legacy Support
+# Core LangChain
 langchain==1.0.5
 langchain-community==0.4.1
-langchain-classic         # <--- CRITICAL: Required for create_retrieval_chain
-python-dotenv
-huggingface-hub
+langchain-classic
 
 # Additional Integrations
 langchain-google-vertexai==3.0.3
+
+# --- Machine Learning (New for Clustering) ---
+scikit-learn
+numpy
