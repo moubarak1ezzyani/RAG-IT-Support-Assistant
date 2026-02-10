@@ -8,6 +8,7 @@ from app.db import models, schemas
 from app.core import security
 from app.api.dependencies import get_current_user
 from app.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
+from app.ml.clustering import perform_clustering
 
 router = APIRouter()
 
@@ -81,3 +82,16 @@ def create_query(
     db.refresh(db_query)
     
     return db_query
+
+@router.post("/analytics/cluster", summary="Trigger User Query Clustering")
+def trigger_clustering(num_clusters: int = 3, db: Session = Depends(get_db)):
+    """
+    Triggers K-Means clustering on all recorded user queries.
+    This organizes past questions into 'topics'.
+    """
+    result = perform_clustering(db, num_clusters)
+    
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["error"])
+        
+    return result
