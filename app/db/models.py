@@ -20,6 +20,7 @@ class Query(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     question = Column(String, nullable=False)
     answer = Column(String, nullable=False)
+    cluster_label = Column(Integer, nullable=True)
     cluster_id = Column(Integer, nullable=True)
     latency_ms = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
